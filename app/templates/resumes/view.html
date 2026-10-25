@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ url_for('resumes.list_resumes') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h2 class="fw-bold mb-0">{{ resume.original_filename }}</h2>
+    </div>
+    <p class="text-secondary small mt-1 mb-0">
+      Uploaded {{ resume.created_at | format_date }} &bull; Format: <span class="text-uppercase">{{ resume.file_type }}</span> ({{ (resume.file_size / 1024) | round(1) }} KB)
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if resume.latest_analysis %}
+      <a href="{{ url_for('analysis.view', analysis_id=resume.latest_analysis.id) }}" class="btn btn-cp-primary">
+        <i class="bi bi-speedometer2 me-1"></i>View Latest Audit ({{ resume.latest_analysis.total_score }}/100)
+      </a>
+    {% endif %}
+    <form method="POST" action="{{ url_for('resumes.delete_resume', resume_id=resume.id) }}" onsubmit="return confirm('Permanently delete this resume and its files?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger">
+        <i class="bi bi-trash3 me-1"></i>Delete Resume
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if resume.is_scanned_pdf %}
+  <div class="alert alert-warning d-flex align-items-center gap-3 mb-4">
+    <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+    <div>
+      <h6 class="fw-bold mb-1">Scanned PDF Warning</h6>
+      <p class="mb-0 small">This PDF appears to be a scanned image or non-selectable document. Very little or no text could be extracted. For accurate skill recognition and scoring, please convert your document to a text-based PDF or DOCX file.</p>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Contact Card -->
+<div class="card card-cp mb-4">
+  <div class="card-cp-header">
+    <h5 class="card-cp-title"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Extracted Contact Information</h5>
+  </div>
+  <div class="card-cp-body">
+    <div class="row g-3">
+      <div class="col-sm-6 col-md-3">
+        <div class="text-secondary small fw-medium">Email</div>
+        <div class="fw-semibold text-dark text-break">{{ resume.extracted_contact.email or "Not detected" }}</div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="text-secondary small fw-medium">Phone</div>
+        <div class="fw-semibold text-dark">{{ resume.extracted_contact.phone or "Not detected" }}</div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="text-secondary small fw-medium">GitHub</div>
+        <div class="fw-semibold">
+          {% if resume.extracted_contact.github %}
+            <a href="{{ resume.extracted_contact.github }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+              <i class="bi bi-github me-1"></i>Profile Link
+            </a>
+          {% else %}
+            <span class="text-muted">Not detected</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="text-secondary small fw-medium">LinkedIn</div>
+        <div class="fw-semibold">
+          {% if resume.extracted_contact.linkedin %}
+            <a href="{{ resume.extracted_contact.linkedin }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+              <i class="bi bi-linkedin me-1"></i>Profile Link
+            </a>
+          {% else %}
+            <span class="text-muted">Not detected</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Extracted Sections -->
+<div class="card card-cp mb-4">
+  <div class="card-cp-header">
+    <h5 class="card-cp-title"><i class="bi bi-layout-text-window-reverse me-2 text-primary"></i>Identified Document Sections</h5>
+  </div>
+  <div class="card-cp-body">
+    {% set sections = resume.extracted_sections %}
+    {% if sections %}
+      <div class="accordion" id="sectionsAccordion">
+        {% for sec_name, sec_content in sections.items() %}
+          <div class="accordion-item border mb-2 rounded overflow-hidden">
+            <h2 class="accordion-header" id="heading{{ loop.index }}">
+              <button class="accordion-button collapsed fw-semibold text-capitalize py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+                <span class="badge bg-primary-subtle text-primary me-2">{{ sec_name }}</span>
+                <span class="text-secondary small">({{ sec_content.split('\n') | length }} lines identified)</span>
+              </button>
+            </h2>
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#sectionsAccordion">
+              <div class="accordion-body bg-light p-3">
+                <pre class="mb-0 text-dark small" style="white-space: pre-wrap; font-family: var(--cp-font-sans);">{{ sec_content }}</pre>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No standard section headers were recognized in the document.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Raw Text View Toggle -->
+<div class="card card-cp">
+  <div class="card-cp-header">
+    <h5 class="card-cp-title"><i class="bi bi-file-text me-2 text-secondary"></i>Raw Extracted Text</h5>
+    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#rawTextCollapse">
+      Toggle Raw Text
+    </button>
+  </div>
+  <div class="collapse" id="rawTextCollapse">
+    <div class="card-cp-body bg-light">
+      <pre class="mb-0 text-secondary small" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">{{ resume.raw_text }}</pre>
+    </div>
+  </div>
+</div>
+{% endblock %}

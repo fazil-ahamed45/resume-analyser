@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block public_content %}
+<!-- Hero Section -->
+<div class="row align-items-center py-5">
+  <div class="col-lg-7 text-center text-lg-start pe-lg-5">
+    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white border shadow-sm mb-3">
+      <span class="badge bg-primary rounded-pill">New</span>
+      <span class="text-secondary small fw-medium">Built for CS Students & Aspiring Developers</span>
+    </div>
+    <h1 class="display-4 fw-bold text-navy-900 mb-3" style="letter-spacing: -0.03em;">
+      Land Your Dream Tech Internship with <span class="text-primary">Explainable AI</span>
+    </h1>
+    <p class="lead text-secondary mb-4" style="line-height: 1.6;">
+      CareerPilot AI analyzes your resume against industry internship requirements, calculates a transparent 0–100 score, uncovers skill gaps, and creates a personalized roadmap to ace technical interviews.
+    </p>
+    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-cp-primary btn-lg px-4 shadow-sm">
+        <i class="bi bi-rocket-takeoff me-2"></i>Analyze My Resume Free
+      </a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-cp-outline btn-lg px-4">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </a>
+    </div>
+    <div class="mt-4 text-muted small d-flex align-items-center justify-content-center justify-content-lg-start gap-4">
+      <span><i class="bi bi-shield-check text-success me-1"></i>100% Private & Isolated</span>
+      <span><i class="bi bi-file-earmark-pdf text-danger me-1"></i>PDF & DOCX Support</span>
+      <span><i class="bi bi-cpu text-primary me-1"></i>Zero Fake ATS Promises</span>
+    </div>
+  </div>
+
+  <div class="col-lg-5 mt-5 mt-lg-0">
+    <div class="card card-cp border-0 shadow-lg p-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-semibold">
+            <i class="bi bi-check-circle-fill me-1"></i>Fresher-Adapted Analysis
+          </span>
+          <span class="text-muted small">Score Audit</span>
+        </div>
+        <div class="text-center my-3">
+          <div class="score-circle score-circle-high mx-auto">
+            <span class="score-number">86</span>
+            <span class="score-total">/ 100</span>
+          </div>
+          <h5 class="fw-bold mb-1">Python Developer Intern</h5>
+          <p class="text-secondary small">Strong alignment with backend requirements</p>
+        </div>
+        <div class="list-group list-group-flush small border-top pt-2">
+          <div class="list-group-item d-flex justify-content-between px-0 bg-transparent">
+            <span>Section Completeness</span>
+            <strong class="text-success">25 / 25 pts</strong>
+          </div>
+          <div class="list-group-item d-flex justify-content-between px-0 bg-transparent">
+            <span>Skills Relevance</span>
+            <strong class="text-primary">26 / 30 pts</strong>
+          </div>
+          <div class="list-group-item d-flex justify-content-between px-0 bg-transparent">
+            <span>Project & Evidence Depth</span>
+            <strong class="text-primary">18 / 20 pts</strong>
+          </div>
+          <div class="list-group-item d-flex justify-content-between px-0 bg-transparent">
+            <span>Bullet Quality & Action Verbs</span>
+            <strong class="text-warning">11 / 15 pts</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Workflow Steps -->
+<div class="py-5 border-top border-bottom bg-white my-5 rounded-4 p-4 p-lg-5 shadow-sm">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold">How CareerPilot Works</h2>
+    <p class="text-muted">A clear, 4-step workflow to optimize your technical profile.</p>
+  </div>
+  <div class="row g-4 text-center">
+    <div class="col-md-3">
+      <div class="p-3">
+        <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.5rem;">
+          1
+        </div>
+        <h5 class="fw-semibold">Upload Document</h5>
+        <p class="text-secondary small">Upload your PDF or DOCX resume. Files are stored securely outside public directories.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3">
+        <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.5rem;">
+          2
+        </div>
+        <h5 class="fw-semibold">Explainable Scoring</h5>
+        <p class="text-secondary small">Get a transparent 0-100 score adapted to college freshers without biased ATS black boxes.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3">
+        <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.5rem;">
+          3
+        </div>
+        <h5 class="fw-semibold">Job Match & Gaps</h5>
+        <p class="text-secondary small">Paste any internship posting to calculate exact match % and highlight missing required skills.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3">
+        <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 1.5rem;">
+          4
+        </div>
+        <h5 class="fw-semibold">Roadmap & Interview</h5>
+        <p class="text-secondary small">Follow prioritized milestones with verified resources and rehearse resume-based interview questions.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features Grid -->
+<div class="py-4">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold">Designed Specifically for Tech Internships</h2>
+    <p class="text-muted">Everything you need to turn your academic projects into hireable assets.</p>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card card-cp h-100 p-4">
+        <div class="stat-icon stat-icon-blue mb-3">
+          <i class="bi bi-file-earmark-diff"></i>
+        </div>
+        <h5 class="fw-bold">Explainable Scoring Engine</h5>
+        <p class="text-secondary small mb-0">Transparent breakdown across section completeness, skill relevance, project depth, and bullet strength with actionable fix tips.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-cp h-100 p-4">
+        <div class="stat-icon stat-icon-purple mb-3">
+          <i class="bi bi-bullseye"></i>
+        </div>
+        <h5 class="fw-bold">Job Description Matcher</h5>
+        <p class="text-secondary small mb-0">Compare your skills directly against live job listings. Identifies required skills, preferred bonuses, and additional advantages.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-cp h-100 p-4">
+        <div class="stat-icon stat-icon-green mb-3">
+          <i class="bi bi-signpost-2"></i>
+        </div>
+        <h5 class="fw-bold">Personalized Learning Roadmap</h5>
+        <p class="text-secondary small mb-0">Targeted study milestones, estimated hours, hands-on tasks, and 100% verified official documentation links.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-cp h-100 p-4">
+        <div class="stat-icon stat-icon-amber mb-3">
+          <i class="bi bi-chat-dots"></i>
+        </div>
+        <h5 class="fw-bold">Resume-Based Interview Prep</h5>
+        <p class="text-secondary small mb-0">Rehearse technical and behavioral questions generated directly from your detected skills and project bullets.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-cp h-100 p-4">
+        <div class="stat-icon stat-icon-blue mb-3">
+          <i class="bi bi-compass"></i>
+        </div>
+        <h5 class="fw-bold">Career Path Recommendations</h5>
+        <p class="text-secondary small mb-0">Explore entry-level roles such as Python Developer, Backend Intern, Data Analyst, or QA Automation with fit calculations.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-cp h-100 p-4">
+        <div class="stat-icon stat-icon-purple mb-3">
+          <i class="bi bi-file-earmark-pdf"></i>
+        </div>
+        <h5 class="fw-bold">Downloadable Executive Reports</h5>
+        <p class="text-secondary small mb-0">Export a clean PDF audit with score components, detected skills taxonomy, weaknesses, and next-step actions.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy & Ethics Notice -->
+<div class="my-5 p-4 bg-light rounded-4 border">
+  <div class="row align-items-center">
+    <div class="col-md-8">
+      <h5 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Privacy & Responsible AI Policy</h5>
+      <p class="text-secondary small mb-0">
+        Your resumes are stored securely with cryptographic UUID filenames and strictly isolated by user ID. 
+        Core analysis works 100% locally using our rule-based Python algorithms without third-party APIs. 
+        External AI coaching requires explicit opt-in consent and never hallucinates fake qualifications.
+      </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-cp-navy">Get Started Now</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

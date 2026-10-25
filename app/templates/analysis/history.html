@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">Resume Analysis History</h2>
+    <p class="text-secondary small mb-0">Track your score improvements across different role targets</p>
+  </div>
+  <a href="{{ url_for('resumes.upload') }}" class="btn btn-cp-primary">
+    <i class="bi bi-cloud-arrow-up me-2"></i>Analyze Another Resume
+  </a>
+</div>
+
+{% if analyses %}
+  <div class="card card-cp">
+    <div class="card-cp-body p-0">
+      <div class="table-responsive">
+        <table class="table table-cp mb-0">
+          <thead>
+            <tr>
+              <th>Target Role</th>
+              <th>Resume Document</th>
+              <th>Experience Level</th>
+              <th>Readiness Score</th>
+              <th>Cataloged Skills</th>
+              <th>Evaluated Date</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in analyses %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('analysis.view', analysis_id=a.id) }}" class="fw-bold text-dark text-decoration-none">
+                    {{ a.target_role }}
+                  </a>
+                </td>
+                <td class="small text-secondary">{{ a.resume.original_filename }}</td>
+                <td class="small text-capitalize">{{ a.experience_level }}</td>
+                <td>
+                  <span class="badge {{ a.total_score | score_badge_class }} fs-6">
+                    {{ a.total_score }} / 100
+                  </span>
+                </td>
+                <td class="small text-secondary">{{ a.detected_skills.total_count }} skills</td>
+                <td class="small text-secondary">{{ a.created_at | format_date }}</td>
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{{ url_for('analysis.view', analysis_id=a.id) }}" class="btn btn-sm btn-cp-outline" title="View Audit">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('analysis.download_pdf', analysis_id=a.id) }}" class="btn btn-sm btn-outline-secondary" title="Download PDF Report">
+                      <i class="bi bi-file-earmark-pdf"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('analysis.delete', analysis_id=a.id) }}" class="d-inline" onsubmit="return confirm('Delete this analysis record?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Record">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="card card-cp">
+    <div class="card-cp-body">
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-graph-up"></i></div>
+        <h4 class="empty-state-title">No Analyses Recorded</h4>
+        <p class="empty-state-text">Upload a resume to generate your first explainable score and tailored skill audit.</p>
+        <a href="{{ url_for('resumes.upload') }}" class="btn btn-cp-primary">
+          <i class="bi bi-cloud-arrow-up me-2"></i>Upload & Analyze Resume
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

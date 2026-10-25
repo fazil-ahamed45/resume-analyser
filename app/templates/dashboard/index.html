@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="fw-bold mb-1">Welcome back, {{ current_user.full_name }}! 👋</h2>
+    <p class="text-secondary small mb-0">Here is your internship readiness summary and recent resume audits.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('resumes.upload') }}" class="btn btn-cp-primary shadow-sm">
+      <i class="bi bi-cloud-arrow-up me-2"></i>Upload New Resume
+    </a>
+    <a href="{{ url_for('career.job_match') }}" class="btn btn-cp-outline">
+      <i class="bi bi-bullseye me-1"></i>Match Job
+    </a>
+  </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-val">{{ total_resumes }}</div>
+        <div class="stat-label">Resumes Analyzed</div>
+      </div>
+      <div class="stat-icon stat-icon-blue">
+        <i class="bi bi-file-earmark-text"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-val">{{ avg_score }}<span style="font-size: 1rem; color: #94A3B8;">/100</span></div>
+        <div class="stat-label">Average Score</div>
+      </div>
+      <div class="stat-icon stat-icon-green">
+        <i class="bi bi-award"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-val">
+          {% if latest_comparison %}{{ latest_comparison.match_percentage }}%{% else %}—{% endif %}
+        </div>
+        <div class="stat-label">Latest Job Match</div>
+      </div>
+      <div class="stat-icon stat-icon-purple">
+        <i class="bi bi-bullseye"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-val">{{ roadmap_progress }}%</div>
+        <div class="stat-label">Roadmap Complete</div>
+      </div>
+      <div class="stat-icon stat-icon-amber">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Shortcuts Banner -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <a href="{{ url_for('career.job_match') }}" class="card card-cp text-decoration-none text-dark p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 bg-primary-subtle text-primary p-2 fs-4">
+          <i class="bi bi-crosshair"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0">JD Matcher</h6>
+          <small class="text-secondary">Compare with job posts</small>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('career.recommendations') }}" class="card card-cp text-decoration-none text-dark p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 bg-info-subtle text-info p-2 fs-4">
+          <i class="bi bi-compass"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0">Career Roles</h6>
+          <small class="text-secondary">Explore suitable titles</small>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('career.roadmap') }}" class="card card-cp text-decoration-none text-dark p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 bg-success-subtle text-success p-2 fs-4">
+          <i class="bi bi-signpost-split"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0">Learning Roadmap</h6>
+          <small class="text-secondary">Track milestone progress</small>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('career.interview') }}" class="card card-cp text-decoration-none text-dark p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-3 bg-warning-subtle text-warning p-2 fs-4">
+          <i class="bi bi-chat-quote"></i>
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0">Interview Prep</h6>
+          <small class="text-secondary">Practice technical Q&A</small>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Main Dashboard Content Grid -->
+<div class="row g-4">
+  <!-- Recent Analyses Column -->
+  <div class="col-lg-7">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h5 class="card-cp-title"><i class="bi bi-file-earmark-bar-graph me-2 text-primary"></i>Recent Resume Audits</h5>
+        <a href="{{ url_for('analysis.history') }}" class="small text-primary text-decoration-none fw-medium">View All History &rarr;</a>
+      </div>
+      <div class="card-cp-body p-0">
+        {% if recent_analyses %}
+          <div class="table-responsive">
+            <table class="table table-cp mb-0">
+              <thead>
+                <tr>
+                  <th>Target Role</th>
+                  <th>Score</th>
+                  <th>Date</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for analysis in recent_analyses %}
+                  <tr>
+                    <td>
+                      <div class="fw-semibold text-dark">{{ analysis.target_role }}</div>
+                      <small class="text-secondary">{{ analysis.resume.original_filename }}</small>
+                    </td>
+                    <td>
+                      <span class="badge {{ analysis.total_score | score_badge_class }} px-2 py-1 fs-6">
+                        {{ analysis.total_score }} / 100
+                      </span>
+                    </td>
+                    <td class="text-secondary small">{{ analysis.created_at | format_date }}</td>
+                    <td class="text-end">
+                      <a href="{{ url_for('analysis.view', analysis_id=analysis.id) }}" class="btn btn-sm btn-cp-outline">
+                        View Audit
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+            <h5 class="empty-state-title">No Resumes Analyzed Yet</h5>
+            <p class="empty-state-text">Upload your PDF or DOCX resume to get a comprehensive score and personalized feedback.</p>
+            <a href="{{ url_for('resumes.upload') }}" class="btn btn-cp-primary">
+              <i class="bi bi-cloud-arrow-up me-2"></i>Upload Your First Resume
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Job Comparisons Column -->
+  <div class="col-lg-5">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h5 class="card-cp-title"><i class="bi bi-bullseye me-2 text-purple"></i>Recent Job Matches</h5>
+        <a href="{{ url_for('career.job_match_history') }}" class="small text-primary text-decoration-none fw-medium">All Matches &rarr;</a>
+      </div>
+      <div class="card-cp-body">
+        {% if user_comparisons %}
+          <div class="d-flex flex-column gap-3">
+            {% for comp in user_comparisons %}
+              <div class="p-3 rounded border bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="fw-bold mb-0">{{ comp.job_title }}</h6>
+                  <span class="badge bg-primary fs-6">{{ comp.match_percentage }}% Match</span>
+                </div>
+                <div class="text-secondary small mb-2">{{ comp.company_name }} &bull; {{ comp.created_at | format_date }}</div>
+                <div class="small">
+                  <span class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>{{ comp.matched_skills | length }} matched</span>
+                  &bull;
+                  <span class="text-danger fw-medium"><i class="bi bi-exclamation-circle me-1"></i>{{ comp.missing_required_skills | length }} gaps</span>
+                </div>
+                <div class="mt-2 text-end">
+                  <a href="{{ url_for('career.view_comparison', comparison_id=comp.id) }}" class="small fw-semibold text-primary text-decoration-none">Review Gaps &rarr;</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state py-4">
+            <div class="empty-state-icon"><i class="bi bi-briefcase"></i></div>
+            <h6 class="fw-bold">No Job Matches Saved</h6>
+            <p class="text-secondary small mb-3">Paste internship job descriptions to see how well your skills match.</p>
+            <a href="{{ url_for('career.job_match') }}" class="btn btn-cp-outline btn-sm">
+              <i class="bi bi-plus-lg me-1"></i>Try Job Matcher
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block public_content %}
+<div class="row justify-content-center py-4">
+  <div class="col-md-7 col-lg-6">
+    <div class="card card-cp border-0 shadow p-3">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <div class="rounded-circle bg-primary-subtle text-primary mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.35rem;">
+            <i class="bi bi-person-plus"></i>
+          </div>
+          <h3 class="fw-bold">Create Free Account</h3>
+          <p class="text-muted small">Analyze your resume, identify skill gaps, and explore internship matches</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.full_name.label(class="form-label fw-medium small") }}
+            {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else ""), placeholder="Alex Johnson") }}
+            {% for error in form.full_name.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.email.label(class="form-label fw-medium small") }}
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="alex@university.edu") }}
+            {% for error in form.email.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              {{ form.password.label(class="form-label fw-medium small") }}
+              {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Min. 8 characters") }}
+              {% for error in form.password.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-sm-6">
+              {{ form.confirm_password.label(class="form-label fw-medium small") }}
+              {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Repeat password") }}
+              {% for error in form.confirm_password.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-6">
+              {{ form.experience_level.label(class="form-label fw-medium small") }}
+              {{ form.experience_level(class="form-select") }}
+            </div>
+            <div class="col-sm-6">
+              {{ form.target_role.label(class="form-label fw-medium small") }}
+              {{ form.target_role(class="form-select") }}
+            </div>
+          </div>
+
+          <div class="mb-4 form-check bg-light p-3 rounded border">
+            <div class="ms-2">
+              {{ form.ai_consent(class="form-check-input") }}
+              {{ form.ai_consent.label(class="form-check-label small fw-medium text-dark") }}
+              <div class="text-muted" style="font-size: 0.76rem;">
+                Optional. If enabled, resume snippets may be sent to external LLMs (Google Gemini) for bullet rewriting. 
+                Core features work 100% locally with zero external calls if unchecked.
+              </div>
+            </div>
+          </div>
+
+          <div class="d-grid mb-3">
+            {{ form.submit(class="btn btn-cp-primary py-2") }}
+          </div>
+
+          <div class="text-center small text-secondary">
+            Already have an account? 
+            <a href="{{ url_for('auth.login') }}" class="fw-semibold text-primary text-decoration-none">Sign In</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

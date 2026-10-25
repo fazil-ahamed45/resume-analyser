@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Results Top Banner -->
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-secondary text-uppercase" style="font-size: 0.75rem;">Audit Result</span>
+      <h2 class="fw-bold mb-0">{{ analysis.target_role }}</h2>
+    </div>
+    <p class="text-secondary small mt-1 mb-0">
+      Resume: <a href="{{ url_for('resumes.view_resume', resume_id=resume.id) }}" class="fw-medium text-dark">{{ resume.original_filename }}</a>
+      &bull; Level: <span class="text-capitalize">{{ analysis.experience_level }}</span>
+      &bull; Evaluated: {{ analysis.created_at | format_date }}
+    </p>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <!-- Download PDF Report -->
+    <a href="{{ url_for('analysis.download_pdf', analysis_id=analysis.id) }}" class="btn btn-cp-navy shadow-sm">
+      <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF Report
+    </a>
+    <!-- Compare with Job Description -->
+    <a href="{{ url_for('career.job_match') }}" class="btn btn-cp-outline">
+      <i class="bi bi-bullseye me-1"></i>Match Against JD
+    </a>
+    <!-- View Roadmap -->
+    <a href="{{ url_for('career.roadmap') }}" class="btn btn-cp-primary">
+      <i class="bi bi-signpost-split me-1"></i>View Roadmap
+    </a>
+  </div>
+</div>
+
+<!-- Score Executive Summary Row -->
+<div class="row g-4 mb-4">
+  <!-- Score Dial & Disclaimer Card -->
+  <div class="col-lg-4">
+    <div class="card card-cp h-100 text-center p-4">
+      <div class="mb-2">
+        <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Overall Readiness Score</span>
+      </div>
+      <div class="score-circle {{ 'score-circle-high' if analysis.total_score >= 80 else ('score-circle-mid' if analysis.total_score >= 60 else ('score-circle-fair' if analysis.total_score >= 45 else 'score-circle-low')) }} mx-auto">
+        <span class="score-number">{{ analysis.total_score }}</span>
+        <span class="score-total">/ 100</span>
+      </div>
+
+      <h5 class="fw-bold mb-1">
+        {% if analysis.total_score >= 80 %}
+          Highly Competitive
+        {% elif analysis.total_score >= 65 %}
+          Solid Foundation
+        {% elif analysis.total_score >= 50 %}
+          Promising Potential
+        {% else %}
+          Needs Skill Development
+        {% endif %}
+      </h5>
+      <p class="text-secondary small mb-3">
+        Adapted for {{ analysis.experience_level.title() }} candidates applying for {{ analysis.target_role }} internships.
+      </p>
+
+      <!-- Re-analyze form accordion -->
+      <button class="btn btn-sm btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#reanalyzeCollapse">
+        <i class="bi bi-arrow-repeat me-1"></i>Test Against Another Role
+      </button>
+
+      <div class="collapse mt-3 text-start" id="reanalyzeCollapse">
+        <form method="POST" action="{{ url_for('analysis.reanalyze', resume_id=resume.id) }}" class="p-3 bg-light rounded border">
+          {{ form.hidden_tag() }}
+          <div class="mb-2">
+            {{ form.target_role.label(class="form-label small fw-medium") }}
+            {{ form.target_role(class="form-select form-select-sm") }}
+          </div>
+          <div class="mb-3">
+            {{ form.experience_level.label(class="form-label small fw-medium") }}
+            {{ form.experience_level(class="form-select form-select-sm") }}
+          </div>
+          {{ form.submit(class="btn btn-cp-primary btn-sm w-100") }}
+        </form>
+      </div>
+
+      <div class="mt-auto pt-3 border-top text-muted" style="font-size: 0.74rem;">
+        <i class="bi bi-shield-exclamation me-1"></i>Heuristic assessment based on published role curricula. Not a proprietary ATS ranking.
+      </div>
+    </div>
+  </div>
+
+  <!-- Radar Chart & Key Strengths -->
+  <div class="col-lg-8">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h5 class="card-cp-title"><i class="bi bi-radar me-2 text-primary"></i>Readiness Radar & Diagnostic</h5>
+        <span class="text-secondary small">5 Evaluated Dimensions</span>
+      </div>
+      <div class="card-cp-body">
+        <div class="row align-items-center">
+          <div class="col-md-7" style="height: 250px;">
+            <canvas id="scoreRadarCanvas"></canvas>
+          </div>
+          <div class="col-md-5">
+            <h6 class="fw-bold mb-2 small text-uppercase text-secondary">Key Strengths</h6>
+            <ul class="list-unstyled mb-3">
+              {% for s in analysis.strengths %}
+                <li class="small mb-2 d-flex align-items-start gap-2 text-success">
+                  <i class="bi bi-check-circle-fill mt-1"></i>
+                  <span class="text-dark">{{ s }}</span>
+                </li>
+              {% else %}
+                <li class="small text-muted">Baseline components present.</li>
+              {% endfor %}
+            </ul>
+
+            <h6 class="fw-bold mb-2 small text-uppercase text-secondary">Identified Gaps</h6>
+            <ul class="list-unstyled mb-0">
+              {% for w in analysis.weaknesses %}
+                <li class="small mb-2 d-flex align-items-start gap-2 text-danger">
+                  <i class="bi bi-exclamation-circle-fill mt-1"></i>
+                  <span class="text-dark">{{ w }}</span>
+                </li>
+              {% else %}
+                <li class="small text-muted">No critical omissions detected.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detailed Component Breakdown Grid -->
+<div class="row g-4 mb-4">
+  {% set b = analysis.score_breakdown %}
+
+  <!-- 1. Section Completeness -->
+  <div class="col-md-6 col-xl-4">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h6 class="card-cp-title small"><i class="bi bi-layout-wtf me-2 text-primary"></i>Section Completeness</h6>
+        <span class="badge bg-primary">{{ b.section_completeness.score }} / {{ b.section_completeness.max_score }} pts</span>
+      </div>
+      <div class="card-cp-body">
+        <p class="small text-secondary mb-3">{{ b.section_completeness.explanation }}</p>
+        {% if b.section_completeness.missing_sections %}
+          <div class="small mb-2 text-danger fw-semibold">
+            <i class="bi bi-x-circle me-1"></i>Missing Sections: {{ b.section_completeness.missing_sections | join(', ') }}
+          </div>
+        {% else %}
+          <div class="small mb-2 text-success fw-semibold">
+            <i class="bi bi-check-circle me-1"></i>All standard sections present!
+          </div>
+        {% endif %}
+        <ul class="list-unstyled small mb-0 text-muted">
+          {% for tip in b.section_completeness.tips %}
+            <li class="mb-1">&bull; {{ tip }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Skills Relevance -->
+  <div class="col-md-6 col-xl-4">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h6 class="card-cp-title small"><i class="bi bi-code-square me-2 text-primary"></i>Skills Relevance</h6>
+        <span class="badge bg-primary">{{ b.skills_relevance.score }} / {{ b.skills_relevance.max_score }} pts</span>
+      </div>
+      <div class="card-cp-body">
+        <p class="small text-secondary mb-3">{{ b.skills_relevance.explanation }}</p>
+        <div class="mb-2">
+          <small class="fw-semibold text-success d-block mb-1">Matched Core Skills:</small>
+          <div class="d-flex flex-wrap gap-1">
+            {% for s in b.skills_relevance.matched_required %}
+              <span class="badge-skill badge-matched">{{ s }}</span>
+            {% else %}
+              <span class="text-muted small">None of the core skills were recognized.</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% if b.skills_relevance.missing_required %}
+          <div class="mt-3">
+            <small class="fw-semibold text-danger d-block mb-1">Missing Critical Skills:</small>
+            <div class="d-flex flex-wrap gap-1">
+              {% for s in b.skills_relevance.missing_required %}
+                <span class="badge-skill badge-missing">{{ s }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Project Depth -->
+  <div class="col-md-6 col-xl-4">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h6 class="card-cp-title small"><i class="bi bi-kanban me-2 text-primary"></i>Project & Evidence Depth</h6>
+        <span class="badge bg-primary">{{ b.project_experience.score }} / {{ b.project_experience.max_score }} pts</span>
+      </div>
+      <div class="card-cp-body">
+        <p class="small text-secondary mb-2">{{ b.project_experience.explanation }}</p>
+        {% if b.project_experience.is_fresher_mode %}
+          <span class="badge bg-info-subtle text-info mb-2">Fresher Mode Activated</span>
+        {% endif %}
+        <ul class="list-unstyled small mb-0 text-muted">
+          {% for tip in b.project_experience.tips %}
+            <li class="mb-1">&bull; {{ tip }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Bullet Point Quality -->
+  <div class="col-md-6 col-xl-6">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h6 class="card-cp-title small"><i class="bi bi-list-check me-2 text-primary"></i>Bullet Point Quality & Action Verbs</h6>
+        <span class="badge bg-primary">{{ b.bullet_quality.score }} / {{ b.bullet_quality.max_score }} pts</span>
+      </div>
+      <div class="card-cp-body">
+        <div class="d-flex gap-4 mb-3">
+          <div>
+            <div class="fs-4 fw-bold text-dark">{{ b.bullet_quality.action_verb_percentage }}%</div>
+            <small class="text-muted">Start with Action Verbs</small>
+          </div>
+          <div>
+            <div class="fs-4 fw-bold text-dark">{{ b.bullet_quality.metric_percentage }}%</div>
+            <small class="text-muted">Include Measurable Metrics</small>
+          </div>
+        </div>
+        <p class="small text-secondary mb-3">{{ b.bullet_quality.explanation }}</p>
+        
+        {% if b.bullet_quality.weak_bullets %}
+          <h6 class="fw-bold small text-secondary mb-2">Example Improvement Opportunities:</h6>
+          {% for wb in b.bullet_quality.weak_bullets[:2] %}
+            <div class="p-2 mb-2 bg-light rounded border small">
+              <div class="text-danger fw-semibold mb-1"><i class="bi bi-arrow-right-short"></i>"{{ wb.original }}"</div>
+              <div class="text-muted" style="font-size: 0.76rem;">{{ wb.issues | join(' &bull; ') }}</div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Readability & Formatting -->
+  <div class="col-md-6 col-xl-6">
+    <div class="card card-cp h-100">
+      <div class="card-cp-header">
+        <h6 class="card-cp-title small"><i class="bi bi-fonts me-2 text-primary"></i>Readability & Contact Signals</h6>
+        <span class="badge bg-primary">{{ b.readability.score }} / {{ b.readability.max_score }} pts</span>
+      </div>
+      <div class="card-cp-body">
+        <p class="small text-secondary mb-2">{{ b.readability.explanation }}</p>
+        <div class="p-3 bg-light rounded border mb-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Word Count</span>
+            <strong>{{ b.readability.word_count }} words</strong>
+          </div>
+          <div class="text-muted" style="font-size: 0.76rem;">Recommended for college 1-page resumes: 400 – 900 words.</div>
+        </div>
+        <ul class="list-unstyled small mb-0 text-muted">
+          {% for tip in b.readability.tips %}
+            <li class="mb-1">&bull; {{ tip }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detected Skills by Taxonomy Category -->
+<div class="card card-cp mb-4">
+  <div class="card-cp-header">
+    <h5 class="card-cp-title"><i class="bi bi-tags me-2 text-primary"></i>Detected Technical & Core Skills</h5>
+    <span class="badge bg-light text-dark border">{{ analysis.detected_skills.total_count }} cataloged skills</span>
+  </div>
+  <div class="card-cp-body">
+    <div class="row g-3">
+      {% for cat_name, skill_list in analysis.detected_skills.categorized.items() %}
+        {% if skill_list %}
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded border h-100">
+              <h6 class="fw-bold mb-2 small text-uppercase text-secondary">
+                {{ cat_name | replace('_', ' ') }}
+              </h6>
+              <div class="d-flex flex-wrap gap-1">
+                {% for s in skill_list %}
+                  <span class="badge-skill" title="{{ analysis.detected_skills.evidence.get(s, 'Found in resume') }}">
+                    <i class="bi bi-code-slash text-primary"></i>{{ s }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- AI Resume Coach Recommendations -->
+{% set ai = analysis.ai_suggestions %}
+<div class="card card-cp mb-4">
+  <div class="card-cp-header">
+    <div class="d-flex align-items-center gap-2">
+      <h5 class="card-cp-title"><i class="bi bi-stars me-2 text-warning"></i>Resume Coach Recommendations</h5>
+      <span class="badge {{ 'bg-success' if ai.is_ai_generated else 'bg-secondary' }}">
+        {{ 'External AI (LLM)' if ai.is_ai_generated else 'Deterministic Rule Engine' }}
+      </span>
+    </div>
+    <small class="text-secondary">{{ ai.provider }}</small>
+  </div>
+  <div class="card-cp-body">
+    {% if ai.summary_recommendation %}
+      <div class="mb-4">
+        <h6 class="fw-bold text-dark mb-1">Recommended Professional Summary:</h6>
+        <div class="p-3 bg-light rounded border font-monospace small text-dark">
+          {{ ai.summary_recommendation }}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if ai.rewritten_bullets %}
+      <h6 class="fw-bold text-dark mb-2">Strengthened Bullet Point Examples:</h6>
+      <div class="d-flex flex-column gap-3 mb-4">
+        {% for rb in ai.rewritten_bullets %}
+          <div class="p-3 rounded border bg-light">
+            <div class="text-danger small mb-1">
+              <i class="bi bi-dash-circle me-1"></i><strong>Original:</strong> "{{ rb.original }}"
+            </div>
+            <div class="text-success small fw-semibold mb-1">
+              <i class="bi bi-plus-circle me-1"></i><strong>Suggested:</strong> "{{ rb.suggestion }}"
+            </div>
+            <div class="text-muted" style="font-size: 0.76rem;">{{ rb.rationale }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if ai.gap_explanations %}
+      <h6 class="fw-bold text-dark mb-2">Bridging Missing Skill Gaps:</h6>
+      <div class="row g-3">
+        {% for gap in ai.gap_explanations %}
+          <div class="col-md-4">
+            <div class="p-3 rounded border bg-white h-100">
+              <h6 class="fw-bold text-primary mb-1">{{ gap.skill }}</h6>
+              <p class="small text-secondary mb-2">{{ gap.importance }}</p>
+              <div class="small fw-medium text-dark"><i class="bi bi-lightbulb me-1 text-warning"></i>{{ gap.how_to_bridge }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="mt-3 text-secondary" style="font-size: 0.76rem;">
+      <i class="bi bi-info-circle me-1"></i>{{ ai.disclaimer }}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const breakdown = {{ analysis.score_breakdown | tojson | safe }};
+    const labels = ["Sections", "Skills", "Projects", "Bullets", "Formatting"];
+    const scores = [
+      breakdown.section_completeness.score,
+      breakdown.skills_relevance.score,
+      breakdown.project_experience.score,
+      breakdown.bullet_quality.score,
+      breakdown.readability.score
+    ];
+    const maxScores = [
+      breakdown.section_completeness.max_score,
+      breakdown.skills_relevance.max_score,
+      breakdown.project_experience.max_score,
+      breakdown.bullet_quality.max_score,
+      breakdown.readability.max_score
+    ];
+
+    renderScoreRadarChart("scoreRadarCanvas", labels, scores, maxScores);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="fw-bold mb-1">Personalized Learning Roadmap</h2>
+    <p class="text-secondary small mb-0">Prioritized technical milestones with verified resources and portfolio projects</p>
+  </div>
+  <a href="{{ url_for('career.interview') }}" class="btn btn-cp-outline">
+    <i class="bi bi-chat-quote me-1"></i>Practice Interview Questions
+  </a>
+</div>
+
+<!-- Progress Bar Card -->
+<div class="card card-cp mb-4">
+  <div class="card-cp-body">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div>
+        <h6 class="fw-bold mb-0">Overall Milestone Progress</h6>
+        <small class="text-secondary">{{ completed_count }} of {{ total_count }} skills mastered</small>
+      </div>
+      <span class="fs-5 fw-bold text-primary">{{ progress_pct }}%</span>
+    </div>
+    <div class="progress" style="height: 10px;">
+      <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress_pct }}%;" aria-valuenow="{{ progress_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+  </div>
+</div>
+
+{% if total_count > 0 %}
+  <!-- Pending Milestones -->
+  <div class="mb-4">
+    <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+      <i class="bi bi-hourglass-split text-primary"></i>
+      <span>Skills to Acquire ({{ pending_items | length }})</span>
+    </h5>
+
+    {% for item in pending_items %}
+      <div class="roadmap-item">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
+          <div class="d-flex align-items-start gap-3">
+            <!-- Milestone Toggle Form -->
+            <form method="POST" action="{{ url_for('career.toggle_roadmap_item', item_id=item.id) }}" class="mt-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-success roadmap-toggle-btn rounded-circle p-1" style="width: 28px; height: 28px;" title="Mark as Mastered">
+                <i class="bi bi-check2"></i>
+              </button>
+            </form>
+
+            <div>
+              <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                <h5 class="fw-bold mb-0 text-dark">{{ item.skill_name }}</h5>
+                <span class="badge {{ 'bg-danger' if item.priority == 'High' else 'bg-warning text-dark' }}">{{ item.priority }} Priority</span>
+                <span class="badge bg-light text-dark border">{{ item.difficulty }}</span>
+                <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-clock me-1"></i>~{{ item.estimated_hours }} Hours</span>
+              </div>
+              <p class="text-secondary small mb-2">{{ item.reason }}</p>
+
+              <div class="row g-2 mt-2">
+                <div class="col-md-6">
+                  <div class="p-2 bg-light rounded border small">
+                    <strong class="text-dark d-block mb-1"><i class="bi bi-terminal me-1 text-primary"></i>Hands-On Practice Task:</strong>
+                    <span class="text-secondary">{{ item.practice_task }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="p-2 bg-light rounded border small">
+                    <strong class="text-dark d-block mb-1"><i class="bi bi-folder-check me-1 text-success"></i>Resume Project Idea:</strong>
+                    <span class="text-secondary">{{ item.project_idea }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {% if item.resource_url %}
+            <div class="ms-md-auto text-md-end flex-shrink-0">
+              <a href="{{ item.resource_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-cp-outline">
+                <i class="bi bi-box-arrow-up-right me-1"></i>Verified Documentation
+              </a>
+              <div class="text-muted small mt-1" style="font-size: 0.72rem;">{{ item.resource_title }}</div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="p-4 bg-light rounded text-center text-muted mb-4">
+        <i class="bi bi-trophy text-success fs-3 mb-2 d-block"></i>
+        All listed roadmap milestones for your target role are marked complete!
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Completed Milestones -->
+  {% if completed_items %}
+    <div>
+      <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-success">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Mastered Milestones ({{ completed_items | length }})</span>
+      </h5>
+
+      {% for item in completed_items %}
+        <div class="roadmap-item completed">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+              <form method="POST" action="{{ url_for('career.toggle_roadmap_item', item_id=item.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-success roadmap-toggle-btn rounded-circle p-1" style="width: 28px; height: 28px;" title="Unmark">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+              </form>
+              <div>
+                <h6 class="fw-bold mb-0 text-decoration-line-through text-secondary">{{ item.skill_name }}</h6>
+                <small class="text-muted">Mastered &bull; {{ item.completed_at | format_date if item.completed_at else 'Completed' }}</small>
+              </div>
+            </div>
+            {% if item.resource_url %}
+              <a href="{{ item.resource_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-link text-decoration-none">
+                Docs &rarr;
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+{% else %}
+  <div class="card card-cp">
+    <div class="card-cp-body">
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-signpost-split"></i></div>
+        <h4 class="empty-state-title">No Roadmap Generated Yet</h4>
+        <p class="empty-state-text">Upload a resume to automatically generate prioritized learning milestones bridging your detected skill gaps.</p>
+        <a href="{{ url_for('resumes.upload') }}" class="btn btn-cp-primary">
+          <i class="bi bi-cloud-arrow-up me-2"></i>Upload Resume
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

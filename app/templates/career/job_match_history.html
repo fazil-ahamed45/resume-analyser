@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">Job Comparison History</h2>
+    <p class="text-secondary small mb-0">Review past job description matches and track skill alignment</p>
+  </div>
+  <a href="{{ url_for('career.job_match') }}" class="btn btn-cp-primary">
+    <i class="bi bi-plus-lg me-1"></i>New Comparison
+  </a>
+</div>
+
+{% if comparisons %}
+  <div class="card card-cp">
+    <div class="card-cp-body p-0">
+      <div class="table-responsive">
+        <table class="table table-cp mb-0">
+          <thead>
+            <tr>
+              <th>Job / Internship Title</th>
+              <th>Company</th>
+              <th>Resume Evaluated</th>
+              <th>Match %</th>
+              <th>Matched Skills</th>
+              <th>Date</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for comp in comparisons %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('career.view_comparison', comparison_id=comp.id) }}" class="fw-bold text-dark text-decoration-none">
+                    {{ comp.job_title }}
+                  </a>
+                </td>
+                <td class="small text-secondary">{{ comp.company_name }}</td>
+                <td class="small text-secondary">{{ comp.resume.original_filename }}</td>
+                <td>
+                  <span class="badge {{ comp.match_percentage | score_badge_class }} fs-6">
+                    {{ comp.match_percentage }}%
+                  </span>
+                </td>
+                <td class="small">
+                  <span class="text-success fw-medium">{{ comp.matched_skills | length }} matched</span>,
+                  <span class="text-danger fw-medium">{{ comp.missing_required_skills | length }} missing</span>
+                </td>
+                <td class="small text-secondary">{{ comp.created_at | format_date }}</td>
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="{{ url_for('career.view_comparison', comparison_id=comp.id) }}" class="btn btn-sm btn-cp-outline" title="Reopen Comparison">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('career.delete_comparison', comparison_id=comp.id) }}" class="d-inline" onsubmit="return confirm('Delete this job match record?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Comparison">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="card card-cp">
+    <div class="card-cp-body">
+      <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-briefcase"></i></div>
+        <h4 class="empty-state-title">No Comparisons Saved</h4>
+        <p class="empty-state-text">Paste job descriptions to match your resume skills against real internship postings.</p>
+        <a href="{{ url_for('career.job_match') }}" class="btn btn-cp-primary">
+          <i class="bi bi-plus-lg me-1"></i>Start Job Matcher
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
