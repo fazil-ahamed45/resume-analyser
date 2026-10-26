@@ -10,9 +10,17 @@ def create_app(config_name="default"):
     app = Flask(__name__)
     app.config.from_object(config_by_name[config_name])
 
-    # Ensure upload directories exist
-    upload_path = Path(app.config["UPLOAD_FOLDER"])
-    upload_path.mkdir(parents=True, exist_ok=True)
+    # Ensure upload directories exist (with fallback for read-only serverless environments like Vercel)
+    try:
+        upload_path = Path(app.config["UPLOAD_FOLDER"])
+        upload_path.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        fallback_upload = Path("/tmp/uploads")
+        try:
+            fallback_upload.mkdir(parents=True, exist_ok=True)
+            app.config["UPLOAD_FOLDER"] = str(fallback_upload)
+        except Exception:
+            pass
 
     # Initialize extensions
     db.init_app(app)

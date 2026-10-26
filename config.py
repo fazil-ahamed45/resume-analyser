@@ -11,18 +11,28 @@ class Config:
     """Base configuration with sensible defaults and security practices."""
     SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-secret-key-change-in-production")
     
+    # Vercel Serverless environment detection
+    IS_VERCEL = bool(os.environ.get("VERCEL"))
+
     # Database
     _db_url = os.environ.get("DATABASE_URL")
-    if not _db_url or _db_url in ("sqlite:///careerpilot.db", "sqlite:///instance/careerpilot.db"):
+    if IS_VERCEL and (not _db_url or "careerpilot.db" in _db_url):
+        SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/careerpilot.db"
+    elif not _db_url or _db_url in ("sqlite:///careerpilot.db", "sqlite:///instance/careerpilot.db"):
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'instance' / 'careerpilot.db'}"
     elif _db_url.startswith("sqlite:///") and not os.path.isabs(_db_url[10:]):
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / _db_url[10:]}"
+    elif _db_url.startswith("postgres://"):
+        SQLALCHEMY_DATABASE_URI = _db_url.replace("postgres://", "postgresql://", 1)
     else:
         SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # File upload handling (Outside public static)
-    UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "instance" / "uploads"))
+    if IS_VERCEL:
+        UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", "/tmp/uploads")
+    else:
+        UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "instance" / "uploads"))
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 5 * 1024 * 1024))  # 5 MB
     ALLOWED_EXTENSIONS = {"pdf", "docx"}
     
