@@ -7,10 +7,21 @@ from app.extensions import db as _db
 from app.models import User, Resume, ResumeAnalysis
 
 
+from pathlib import Path
+
 @pytest.fixture(scope="session")
 def app():
     app = create_app("testing")
-    return app
+    yield app
+    # Clean up test upload files generated during test run
+    test_dir = Path(app.config.get("UPLOAD_FOLDER", ""))
+    if test_dir.exists() and "test_uploads" in str(test_dir):
+        for f in test_dir.iterdir():
+            if f.is_file() and f.name != ".gitkeep":
+                try:
+                    f.unlink()
+                except Exception:
+                    pass
 
 
 @pytest.fixture(scope="function")

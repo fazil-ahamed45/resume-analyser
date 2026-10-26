@@ -42,6 +42,8 @@ instance/*.sqlite3
 # Uploaded resume files (do not commit user resumes)
 instance/uploads/*
 !instance/uploads/.gitkeep
+instance/test_uploads/*
+!instance/test_uploads/.gitkeep
 
 # Testing & Coverage
 .pytest_cache/
